@@ -1,4 +1,5 @@
 import { AppError } from "./app-error.js";
+import config from "../../configs/config.config.js";
 
 export const notFoundHandler = (req, _res, next) => {
   next(
@@ -84,7 +85,7 @@ export const globalErrorHandler = (err, _req, res, _next) => {
     payload.details = normalizedError.details;
   }
 
-  if (process.env.NODE_ENV !== "production") {
+  if (config.NODE_ENV !== "production") {
     payload.stack = normalizedError.stack;
   }
 
