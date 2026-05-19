@@ -1,6 +1,6 @@
 import app from './src/app.js';
-import config from './src/config/config.config.js';
-import connectDB from './src/config/mongoose.config.js';
+import config from './src/configs/config.config.js';
+import connectDB from './src/configs/mongoose.config.js';
 
 connectDB();
 
