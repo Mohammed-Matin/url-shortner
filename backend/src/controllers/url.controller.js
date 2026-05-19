@@ -1,4 +1,4 @@
-import { shortURL } from "../services/url.service.js";
+import { shortURL, fullURL } from "../services/url.service.js";
 
 export async function createShortURL(req, res) {
   if (!req.body.url) {
@@ -19,4 +19,26 @@ export async function createShortURL(req, res) {
       clicks: shorturl.clicks,
     },
   });
+}
+
+export async function getFullURL(req, res) {
+  const { shortId } = req.params;
+
+  if (!shortId) {
+    return res.status(400).json({
+      message: "Short ID parameter is missing.",
+    });
+  }
+
+  const urlData = await fullURL(shortId);
+
+  if (!urlData) {
+    return res.status(404).json({
+      message: "Short URL not found.",
+    });
+  }
+
+  res.redirect(urlData.full_url);
+
+  return;
 }

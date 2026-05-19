@@ -1,5 +1,6 @@
 import express from 'express';
 import urlRouter from './routes/url.route.js';
+import { getFullURL } from './controllers/url.controller.js';
 
 const app = express();
 
@@ -12,5 +13,8 @@ app.get('/', (_req, res) => {
 
 // POST - /api/url/create
 app.use('/api/url', urlRouter);
+
+// GET - /:shortId
+app.get('/:shortId', getFullURL); // route parameter
 
 export default app;
