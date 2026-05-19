@@ -1,10 +1,24 @@
 import { shortURL, fullURL } from "../services/url.service.js";
-import config from '../configs/config.config.js';
+import config from "../configs/config.config.js";
+import { asyncHandler } from "../utils/errors/async-handler.js";
+import { ControllerError } from "../utils/errors/app-error.js";
 
-export async function createShortURL(req, res) {
-  if (!req.body.url) {
-    return res.status(409).json({
+export const createShortURL = asyncHandler(async (req, res) => {
+  if (!req.body?.url) {
+    throw new ControllerError({
       message: "url isn't there in the request.",
+      statusCode: 400,
+      code: "INVALID_INPUT",
+      details: { field: "url", reason: "required" },
+    });
+  }
+
+  if (typeof req.body.url !== "string") {
+    throw new ControllerError({
+      message: "url must be a string.",
+      statusCode: 400,
+      code: "INVALID_INPUT",
+      details: { field: "url", reason: "must be string" },
     });
   }
 
@@ -20,28 +34,32 @@ export async function createShortURL(req, res) {
       shortURL: shorturl.short_url,
       clicks: shorturl.clicks,
     },
-    short_url: config.APP_URL + shorturl.short_url
+    short_url: config.APP_URL + shorturl.short_url,
   });
-}
+});
 
-export async function getFullURL(req, res) {
+export const getFullURL = asyncHandler(async (req, res) => {
   const { shortId } = req.params;
 
   if (!shortId) {
-    return res.status(400).json({
+    throw new ControllerError({
       message: "Short ID parameter is missing.",
+      statusCode: 400,
+      code: "INVALID_PATH_PARAM",
+      details: { field: "shortId", reason: "required" },
     });
   }
 
   const urlData = await fullURL(shortId);
 
   if (!urlData) {
-    return res.status(404).json({
+    throw new ControllerError({
       message: "Short URL not found.",
+      statusCode: 404,
+      code: "RESOURCE_NOT_FOUND",
+      details: { shortId },
     });
   }
 
   res.redirect(urlData.full_url);
-
-  return;
-}
+});
