@@ -2,8 +2,11 @@ import { shortURL, fullURL } from "../services/url.service.js";
 import config from "../configs/config.config.js";
 import { asyncHandler } from "../utils/errors/async-handler.js";
 import { ControllerError } from "../utils/errors/app-error.js";
+import { rejectUnexpectedData } from "../utils/errors/validation.js";
 
 export const createShortURL = asyncHandler(async (req, res) => {
+  rejectUnexpectedData(req, { allowedBody: ["url"] });
+
   if (!req.body?.url) {
     throw new ControllerError({
       message: "url isn't there in the request.",
@@ -39,6 +42,8 @@ export const createShortURL = asyncHandler(async (req, res) => {
 });
 
 export const getFullURL = asyncHandler(async (req, res) => {
+  rejectUnexpectedData(req, { allowedParams: ["shortId"] });
+
   const { shortId } = req.params;
 
   if (!shortId) {

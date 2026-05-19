@@ -5,7 +5,7 @@ import connectDB from './src/configs/mongoose.config.js';
 connectDB()
 .then(() => {
 app.listen(config.PORT, () => {
-    console.log(`Server is running on ${config.PORT}`)
+    console.log(`Server is running on http://localhost:${config.PORT}`)
   })
 })
 .catch((err) => {

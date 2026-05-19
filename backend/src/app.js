@@ -1,10 +1,7 @@
 import express from "express";
 import urlRouter from "./routes/url.route.js";
 import { getFullURL } from "./controllers/url.controller.js";
-import {
-  notFoundHandler,
-  globalErrorHandler,
-} from "./utils/errors/error.middleware.js";
+import { notFoundHandler, globalErrorHandler } from "./utils/errors/error.middleware.js";
 
 const app = express();
 

@@ -3,61 +3,52 @@ import { insertURL, getAndIncURL } from "../repositories/url.repository.js";
 import { ServiceError } from "../utils/errors/app-error.js";
 
 export async function shortURL(full_url, user_id) {
-  if (!full_url?.trim()) {
-    throw new ServiceError({
-      message: "URL is required to create a short link.",
-      statusCode: 400,
-      code: "URL_REQUIRED",
-    });
-  }
-
   let normalizedURL;
   try {
-    normalizedURL = new URL(full_url).toString();
-  } catch {
+    const parsedUrl = new URL(full_url);
+    if (!(parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:")) {
+      throw new Error("Invalid protocol. Only HTTP and HTTPS are allowed.");
+    }
+    normalizedURL = parsedUrl.toString();
+  } catch (error) {
     throw new ServiceError({
-      message: "Provided URL is invalid.",
+      message: error.message || "Provided URL is invalid.",
       statusCode: 422,
       code: "INVALID_URL",
       details: { value: full_url },
     });
   }
 
-  const short_url = generateNanoId(7);
+  const MAX_RETRIES = 3;
+  for (let i = 0; i < MAX_RETRIES; i++) {
+    const short_url = generateNanoId(7);
 
-  if (!short_url) {
-    throw new ServiceError({
-      message: "Failed to generate short URL identifier.",
-      statusCode: 500,
-      code: "SHORT_ID_GENERATION_FAILED",
-    });
-  }
-
-  try {
-    const newShortURL = await insertURL(normalizedURL, short_url, user_id);
-
-    return newShortURL;
-  } catch (error) {
-    throw new ServiceError({
-      message: "Failed to create short URL.",
-      statusCode: error.statusCode || 500,
-      code: "SHORT_URL_CREATE_FAILED",
-      details: { short_url },
-      cause: error,
-    });
+    try {
+      const newShortURL = await insertURL(normalizedURL, short_url, user_id);
+      return newShortURL; // Success, exit the loop and function
+    } catch (error) {
+      // Check if the error is a MongoDB duplicate key error (code 11000)
+      if (error.cause?.code === 11000) {
+        // This is a collision. If we've used all our retries, throw an error.
+        if (i === MAX_RETRIES - 1) {
+          throw new ServiceError({
+            message:
+              "Failed to create unique short URL after multiple attempts.",
+            statusCode: 500,
+            code: "SHORT_URL_CREATION_FAILED",
+            cause: error,
+          });
+        }
+        // Otherwise, the loop will continue and we'll try again with a new ID.
+      } else {
+        // It's a different kind of error, so re-throw it immediately.
+        throw error;
+      }
+    }
   }
 }
 
 export async function fullURL(short_url) {
-  if (!short_url?.trim()) {
-    throw new ServiceError({
-      message: "Short URL id is required.",
-      statusCode: 400,
-      code: "SHORT_ID_REQUIRED",
-    });
-  }
-
-  // later, update for race condition
   try {
     const urlData = await getAndIncURL(short_url);
 

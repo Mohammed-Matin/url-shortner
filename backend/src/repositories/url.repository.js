@@ -28,14 +28,15 @@ export const insertURL = async (full_url, short_url, user_id) => {
 
 export const getAndIncURL = async (short_url) => {
   try {
-    const urlData = await ShortURL.findOne({ short_url });
-
-    if (urlData) {
-      urlData.clicks += 1;
-      await urlData.save();
-    }
-
-    return urlData;
+    // Use findOneAndUpdate with $inc for an atomic update.
+    // This finds the document and increments 'clicks' in a single,
+    // race-condition-safe database operation.
+    const urlData = await ShortURL.findOneAndUpdate(
+      { short_url },
+      { $inc: { clicks: 1 } },
+      { returnDocument: "before" }, // returns the document *before* the update was applied
+    );
+    return urlData; // will be null if not found, or the old doc if found
   } catch (error) {
     throw new RepositoryError({
       message: "Database read/update failed for short URL.",
