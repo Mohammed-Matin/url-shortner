@@ -25,9 +25,14 @@ if(!process.env.MONGO_URI) {
   throw new Error('MONGO_URI environment variable is not defined.')
 }
 
+if(!process.env.APP_URL) {
+  throw new Error('APP_URL environment variable is not defined.')
+}
+
 const config = {
   PORT: process.env.PORT,
-  MONGO_URI: process.env.MONGO_URI
+  MONGO_URI: process.env.MONGO_URI,
+  APP_URL: process.env.APP_URL
 };
 
 export default config;

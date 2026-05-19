@@ -1,4 +1,5 @@
 import { shortURL, fullURL } from "../services/url.service.js";
+import config from '../configs/config.config.js';
 
 export async function createShortURL(req, res) {
   if (!req.body.url) {
@@ -9,7 +10,8 @@ export async function createShortURL(req, res) {
 
   const { url } = req.body;
 
-  const shorturl = await shortURL(url); // service
+  const shorturl = await shortURL(url); // service - without user
+  // const shorturl = await shortURL(url, user_id); // service - with user
 
   res.status(201).json({
     message: "ShortURL created successfully",
@@ -18,6 +20,7 @@ export async function createShortURL(req, res) {
       shortURL: shorturl.short_url,
       clicks: shorturl.clicks,
     },
+    short_url: config.APP_URL + shorturl.short_url
   });
 }
 

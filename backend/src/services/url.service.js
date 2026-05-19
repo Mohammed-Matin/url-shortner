@@ -1,25 +1,17 @@
-import { nanoid } from "nanoid";
-import ShortURL from "../models/shorturl.model.js";
+import { generateNanoId } from '../utils/helper.js';
+import { insertURL, getAndIncURL } from '../repositories/url.repository.js';
 
-export async function shortURL(full_url) {
-  const short_url = nanoid(7);
+export async function shortURL(full_url, user_id) {
+  const short_url = generateNanoId(7);
 
-  const newShortURL = await ShortURL.create({
-    full_url,
-    short_url,
-  });
+  const newShortURL = insertURL(full_url, short_url, user_id)
 
   return newShortURL;
 }
 
 export async function fullURL(short_url) {
   // later, update for race condition
-  const urlData = await ShortURL.findOne({ short_url });
-
-  if (urlData) {
-    urlData.clicks++;
-    await urlData.save();
-  }
+  const urlData = await getAndIncURL(short_url);
 
   return urlData;
 }
